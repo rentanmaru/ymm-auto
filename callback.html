@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TikTok OAuth Callback — YMM Auto Uploader</title>
+<style>
+  body { font-family: -apple-system, "Hiragino Sans", "Yu Gothic UI", sans-serif;
+         max-width: 720px; margin: 60px auto; padding: 0 20px; line-height: 1.7;
+         color: #222; background: #f8f8f8; text-align: center; }
+  h1 { color: #c00; }
+  .box { background: #fff; padding: 30px; margin: 20px 0; border-radius: 8px;
+         box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  code { background: #f0f0f0; padding: 4px 8px; border-radius: 4px; font-size: 0.9em;
+         word-break: break-all; }
+  button { background: #c00; color: white; border: none; padding: 12px 24px;
+           font-size: 1em; border-radius: 6px; cursor: pointer; margin: 8px; }
+  button:hover { background: #a00; }
+  .small { color: #777; font-size: 0.85em; }
+</style>
+</head>
+<body>
+<h1>OAuth 認可受信中...</h1>
+<div class="box">
+  <p>TikTok から認可コードを受け取りました。<br>
+     ローカルアプリ (YMM Auto Uploader) に転送中です...</p>
+  <p class="small">数秒で自動的にローカルブラウザタブが開きます。<br>
+     開かない場合は下のボタンをクリックしてください。</p>
+  <p><button id="forwardBtn" onclick="forward()">ローカルアプリに転送</button></p>
+  <p class="small">転送後、このタブは閉じて構いません。</p>
+</div>
+
+<div class="box" id="manualBox" style="display:none">
+  <h3>手動転送が必要な場合</h3>
+  <p>以下のcodeをupload_tiktok.pyのプロンプトに貼り付けてください:</p>
+  <p><code id="codeDisplay"></code></p>
+</div>
+
+<script>
+function getParam(name) {
+  return new URLSearchParams(window.location.search).get(name) || "";
+}
+function forward() {
+  const code = getParam("code");
+  const state = getParam("state");
+  const error = getParam("error");
+  if (error) {
+    document.body.innerHTML = "<h1>認可エラー</h1><p>error: " + error + "</p>";
+    return;
+  }
+  if (!code) {
+    document.body.innerHTML = "<h1>codeパラメータが見つかりません</h1>";
+    return;
+  }
+  // Display for manual fallback
+  document.getElementById("codeDisplay").textContent = code;
+  document.getElementById("manualBox").style.display = "block";
+  // Auto-forward to localhost
+  const target = "http://localhost:8080/callback?code=" + encodeURIComponent(code) +
+                 "&state=" + encodeURIComponent(state);
+  window.location.href = target;
+}
+// Auto-trigger after 1 sec
+setTimeout(forward, 1000);
+</script>
+</body>
+</html>
